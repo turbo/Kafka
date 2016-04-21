@@ -9,7 +9,7 @@ This is a walkthrough of how to create the smallest possible framework for 1k de
 - Crinkler (download and put `crinkler.exe` in your project directory, renamed to `link.exe`).
 - Basic C/++ knowledge and quite a bit Assembly knowledge.
 
-The idea here is to prove that one can create extremly small demos without writing the whole thing in pure Assembly. The basic skill is to know how compilers work in order to write C/++ code that produces the Assembly *you* want. Inline Assembly is only used when
+The idea here is to prove that one can create extremely small demos without writing the whole thing in pure Assembly. The basic skill is to know how compilers work in order to write C/++ code that produces the Assembly *you* want. Inline Assembly is only used when
 
 1. we know the compiler will make a mistake<sup>1</sup> or
 2. it is inevitable, because we need to get rid of one more byte.
@@ -71,8 +71,8 @@ void entrypoint(void) {
 Now the second trick. Instead of creating a Window, we just render directly onto the desktop. Some GPUs do *not* support this, but most do:
 
 ```
-  const auto hDC = GetDC(0);
-	SetPixelFormat(hDC, ChoosePixelFormat(hDC, &pfd), &pfd);
+const auto hDC = GetDC(0);
+SetPixelFormat(hDC, ChoosePixelFormat(hDC, &pfd), &pfd);
 ```
 
 Notice how the DC handle is declared as a `const`. That means the actual handle won't be stored as a variable, but rather remains in one of the 32bit registers *the whole time*. Compile the above code and inspect the assembly. You'll see that `hDC` will be stored in `EDI`. So now we know that `EDI` will always contain a positive, non-zero value which is also the DC. This will come in handy.
@@ -80,27 +80,27 @@ Notice how the DC handle is declared as a `const`. That means the actual handle 
 Using this knowledge, we can spare a few bytes on the actual OpenGL context initialization by re-using the register instead of creating a variable:
 
 ```cpp
-	_asm {
-		push edi;
-		call DWORD PTR wglCreateContext;
-		push eax;
-		push edi;
-		call wglMakeCurrent;
-	}
+_asm {
+	push edi;
+	call DWORD PTR wglCreateContext;
+	push eax;
+	push edi;
+	call wglMakeCurrent;
+}
 ```
 
 ## Shader
 
-That's the OpenGL context done. Now time to write the shader. Use GLSLSandbox or any compatible GLSL editor to create you shader. Then just replace the `uniform float time` with `float time=gl_Color.r*192`, where `192` is the runtime in seconds (`RUNTIME` * 64). For now, let's stick to this minimal shader:
+That's the OpenGL context done. Now time to write the shader. Use GLSLSandbox or any compatible GLSL editor to create your shader. Then just replace the `uniform float time` with `float time=gl_Color.r*192`, where `192` is the runtime in seconds (`RUNTIME` * 64). For now, let's stick to this minimal shader:
 
 ```cpp
-  static auto fragmentShader = "void main(){gl_FragColor=vec4(.5);}";
+static auto fragmentShader = "void main(){gl_FragColor=vec4(.5);}";
 ```
 
 I.e. a grey solid. Make sure you declare the shader source as a `static` variable, so it'll be stored as data in the assembly. Compiling and selecting the shader is easy:
 
 ```cpp
-  GLExt(glUseProgram)(GLExt(glCreateShaderProgramv)(0x8B30, 1, &fragmentShader));
+GLExt(glUseProgram)(GLExt(glCreateShaderProgramv)(0x8B30, 1, &fragmentShader));
 ```
 
 ## Timing
@@ -108,19 +108,19 @@ I.e. a grey solid. Make sure you declare the shader source as a `static` variabl
 That's the "creative" part done. Now on to the timing routine. First, get the current time after the shader init:
 
 ```cpp
-  const auto startTime = GetTickCount();
+const auto startTime = GetTickCount();
 ```
 
 Oh look, another `const`! Where this is stored depends on the main loop code. For now, it is stored in `EBX`. Now, since we don't have a window, we can't use `ShowCursor`, because this function only works on the current window's DC. 
 
-But we can *move* the cursor off-screen. We know that `EBX` hold a positive value (the current uptime in milliseconds), which is most likely to be bigger than any screen's vertical resolution. So we use that to clip the cursor to the bottom of the screen, where it is invisible:
+But we can *move* the cursor off-screen. We know that `EBX` holds a positive value (the current uptime in milliseconds), which is most likely to be bigger than any screen's vertical resolution. So we use that to clip the cursor to the bottom of the screen, where it is invisible:
 
 ```cpp
-  _asm {
-		push ebx;
-		push 0;
-		call SetCursorPos;
-	}
+ _asm {
+	push ebx;
+	push 0;
+	call SetCursorPos;
+}
 ```
 
 On a 1080p screen, there's only a 1.08 second window every 50 *days* where this won't work. Now the main loop:
@@ -214,7 +214,7 @@ When writing a shader for this framework you want have two goals:
 Remember to 
 
 - Replace `uniform float time;` with `float time=gl_Color.r*<RUNTIME*64>`.
-- Replace `uniform vec2 resolution` with a constant `vec2`.
+- Replace `uniform vec2 resolution;` with a constant `vec2`.
 
 ## Example
 
@@ -249,5 +249,5 @@ time spent: 0m34s
 
 ## Demo
 
-See it in action here:
+[![](https://raw.githubusercontent.com/hlecter/Kafka/master/video.png)](http://webm.land/media/9DGX.webm)
 
