@@ -70,7 +70,7 @@ void entrypoint(void) {
 }
 ```
 
-Now the second trick. Instead of creating a Window, we just render directly onto the desktop. Some GPUs do *not* support this, but most do:
+Now the second trick. Instead of creating a Window, we just render directly onto the desktop. Some GPUs do *not* support this:
 
 ```
 const auto hDC = GetDC(0);
