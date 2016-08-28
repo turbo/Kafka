@@ -1,5 +1,7 @@
 # Kafka
 
+> **WARNING** This only works on a subset of recent AMD GPUs (others might work, but are untested). Kafka was developed on an AMD A6 APU with both an R5 200-series and R5 engineering sample. Only one display must be connected, or external ones switched to exclusive.
+
 This is a walkthrough of how to create the smallest possible framework for 1k democoding. At the end of this, we'll have an OpenGL context displaying a shader in just under 520 bytes. 
 
 ## What you need
