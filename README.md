@@ -1,8 +1,15 @@
 # Kafka
 
-> **WARNING** This only works on a subset of recent AMD GPUs (others might work, but are untested). Kafka was developed on an AMD A6 APU with both an R5 200-series and R5 engineering sample. Only one display must be connected, or external ones switched to exclusive.
+Support is arriving in more and more Windows GPU drivers for rendering to non-window device contexts, such as the 0 (aka Desktop) context. This is good news for 1k democoding, because you no longer have to initialize a window and implement a message pump. However, as with anything, there are pros and cons to this approach:
 
-This is a walkthrough of how to create the smallest possible framework for 1k democoding. At the end of this, we'll have an OpenGL context displaying a shader in just under 520 bytes. 
+Pro | Con
+--- | ---
+Saving hundreds of bytes | Support is very, very sparse
+Small number of variables makes register re-use more viable | Implementations are unstable and incompatible with most screen configs
+
+Kafka was developed on an AMD A6 APU with both an R5 200-series and R5 engineering sample. Only one display must be connected, or external ones switched to exclusive. This is a walkthrough of how to create the smallest possible framework for clocked GLSL shaders. At the end of this, we'll have an OpenGL context displaying a shader in just under 520 bytes. 
+
+Shader examples assume the relaxed AMD GLSL flavor, which usually allows for uninitialized variables and non-explicit constant float expressions.
 
 ## What you need
 
@@ -248,8 +255,3 @@ Final file size: 749
 
 time spent: 0m34s
 ```
-
-## Demo
-
-[![](https://raw.githubusercontent.com/hlecter/Kafka/master/video.png)](http://webm.land/media/9DGX.webm)
-
